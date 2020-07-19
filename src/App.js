@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { Datatable, BasicLayout } from 'react-antd-dashboard';
-import moment from 'moment';
+import {  BasicLayout } from 'react-antd-dashboard';
 import ParamDemo from './pages/ParamDemo';
 import Users from './pages/Users';
 import { HomeOutlined, LogoutOutlined } from '@ant-design/icons';
 import logo from './logo.svg';
 function App() {
 
-  const customItems = []
-  const pages = [];
   const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
+  const [loading, setLoading]=useState(true);
   useEffect(() => {
     const authenticated = sessionStorage.getItem("authenticated");
     if (authenticated === "true")
       setLoggedIn(true);
+    setLoading(false);
   }, [])
   // Required parameters are :authenticated, onLogin (if using default login page), user, pages, menuItems
   return <BasicLayout
+    loading={loading} // if set true, it will show spinner or custom loading page. Best used when initializing application.
+    loadingPage={null} // custom component for loading page, optional
+    logo={null} // optional, source or component intended for logo in top left corner when side menu is collapsed
+    expandedLogo={null} // optional, source or component intended for logo in top left corner when side menu is expanded
     applicationName={'My example application'} // appplication  name shown on left side of toolbars
     authenticated={loggedIn} // Flag which indicated if user is logged in, if user is not 
     onLogin={({ username, password }) => {
@@ -27,15 +29,15 @@ function App() {
         setLoggedIn(true);
       }
 
-    }} // function that occurs on click of login button on default page
+    }} // callback that occurs on click of login button on default page
     user={{
       firstName: 'John',
       lastName: 'Doe',
       username: 'johndoe'
-    }} // information about logged user
+    }} // information about logged in user
     pages={[
       {
-        key: 'users', // key is used for routing, you can access this page with routing e.g. (app.com/users)
+        key: 'users', // key is used for routing, you can access this page via route endpoint e.g. (app.com/users)
         component: Users
       },
       {
@@ -46,7 +48,7 @@ function App() {
     ]} // array which contains all available pages in app, all pages are accessible via route endpoints
     menuItems={[
       {
-        // first page is automatically loaded and is available via / route
+        // first page is automatically loaded and is available via '/' route
         key: 'users', // key must match key atrribute of page item
         value: 'Home',
         icon: <HomeOutlined />,
@@ -72,6 +74,13 @@ function App() {
     ]} // menu items for dropdown menu beneath user information
 
     loginLogo={logo} // optional, source for picture on default login page
+    loginLogoStyle={null} // optional, style object for login logo, also you can override 'login-logo' class
+    loginPage={null} // optional, you can customize login page by creating and supplying custom page component. 
+    // BasicLayout will pass to your component loginLogo, loginLogoStyle props and onLogin callbacks
+    notFound={null} // optional, custom not found (404) page component
+    forbidden={null} // optional, custom forbidden (403) page component
+    footer={null} // optional, footer component
+    footerStyle={null} // optional, footer container style object, default style is textAlign:center
   />
 
 }

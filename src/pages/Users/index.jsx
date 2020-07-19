@@ -1,9 +1,14 @@
-import React from 'react';
-import { Datatable } from 'react-antd-dashboard';
-
-
+import React, { useRef, useState } from 'react';
+import { Datatable, Header, TooltipButton, FormModal } from 'react-antd-dashboard';
+import KeyModal from './KeyModal';
+import { EditOutlined, DeleteOutlined, PlusOutlined, InfoOutlined } from '@ant-design/icons';
+import { Button, Form, Input, InputNumber, Select, DatePicker } from 'antd';
+import moment from 'moment';
 const Users = props => {
-    const dataSource = [
+    const formModal = useRef(null);
+    const keyModal = useRef(null);
+
+    const [dataSource, setDataSource] = useState([
         {
             key: 1,
             name: 'Mark',
@@ -53,14 +58,14 @@ const Users = props => {
             date: '1994-08-05',
             status: 2,
         },
-    ];
+    ]);
 
     const columns = [
         {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
-            // Aditional properties for sorting and filterin, can be used in combination with normal properties
+            // Aditional properties for sorting and filtering, can be used in combination with normal properties
             sort: 'string',
             filter: 'string'
         },
@@ -87,7 +92,7 @@ const Users = props => {
             width: 140,
             sort: 'number',
             filter: 'select', // if filter is select or multiSelect, you must specify filterOptions array with id, value pairs. Id denotes original value and value denotes mapped value.
-            filterOptions:[
+            filterOptions: [
                 {
                     id: 1,
                     value: 'Valid'
@@ -108,10 +113,81 @@ const Users = props => {
                 }
             ]
         },
+        {
+            title: 'Actions',
+            width: 170,
+            render: (text, record, index) => {
+                return <div>
+                    <TooltipButton text="Key info" icon={<InfoOutlined />} onClick={() => keyModal.current.showDialog(record)} />
+                    <TooltipButton text="Edit" icon={<EditOutlined />} onClick={() => formModal.current.showDialog({ ...record, date: moment(record.date) })} />
+                    {/*We are explicitly creating moment object since DatePicker value must be moment object */}
+                    <TooltipButton text="Delete" icon={<DeleteOutlined />} onClick={() => setDataSource(dataSource.filter(u => u.key !== record.key))} />
+                </div>
+            }
+        },
     ];
 
-    return <div className="page-container">
+
+    return <div className="page-container" style={{ flexDirection: 'column' }} >
+        <Header title="Users" >
+            <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => formModal.current.showDialog()}>
+                Add
+            </Button>
+        </Header>
         <Datatable dataSource={dataSource} columns={columns} />
+        <KeyModal ref={keyModal} />
+        <FormModal
+            addTitle="Add user"
+            editTitle="Edit user"
+            ref={formModal}
+            onAdd={user => {
+                setDataSource([...dataSource,
+                {
+                    key: Date.now(),
+                    ...user
+                }]);
+                formModal.current.closeDialog();
+            }}
+            onEdit={user => {
+                setDataSource(dataSource.map(u => u.key !== user.key ? u : user));
+                formModal.current.closeDialog();
+            }}
+        >
+            <Form.Item
+                name="name"
+                label="Name"
+                rules={[{ required: true, message: 'Name is required!' }]}
+            >
+                <Input />
+            </Form.Item>
+            <Form.Item
+                name="age"
+                label="Age"
+                rules={[{ required: true, message: 'Age is required!' }]}
+            >
+                <InputNumber step={1} />
+            </Form.Item>
+            <Form.Item
+                name="date"
+                label="Date"
+                rules={[{ required: true, message: 'Date is required!' }]}
+            >
+                <DatePicker />
+            </Form.Item>
+            <Form.Item
+                name="status"
+                label="Status"
+                rules={[{ required: true, message: 'Status is required!' }]}
+            >
+                <Select defaultValue={1}>
+                    <Select.Option value={1}>Valid</Select.Option>
+                    <Select.Option value={2}>Invalid</Select.Option>
+                </Select>
+            </Form.Item>
+        </FormModal>
     </div>;
 
 }
